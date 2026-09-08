@@ -35,12 +35,19 @@ if (generateBtn) {
     (topic, hero) => `오늘, ${eunNeun(topic)} 시작돼요`,
   ];
 
+  const SENIOR_TITLE_TEMPLATES = [
+    (topic, hero) => `지나온 날들 속의 ${topic}`,
+    (topic, hero) => `${iGa(hero)} 되돌아보는 ${topic}`,
+    (topic, hero) => `삶이 전하는 ${topic}`,
+    (topic, hero) => `${topic}, 그리고 남은 날들의 이야기`,
+  ];
+
   const AGE_STYLE = {
     toddler: "young",
     child: "young",
     teen: "grown",
     adult: "grown",
-    senior: "grown",
+    senior: "senior",
   };
 
   const SCENE_TEMPLATES = [
@@ -101,6 +108,44 @@ if (generateBtn) {
     },
   ];
 
+  const SENIOR_SCENE_TEMPLATES = [
+    {
+      label: "1장. 지나온 날들 (추억)",
+      variants: [
+        (topic, hero, tone) => `${eunNeun(hero)} ${tone} 오후, 지나온 날들을 가만히 떠올려 보았어요. 돌이켜보면 그 안엔 늘 ${iGa(topic)} 함께하고 있었어요.`,
+        (topic, hero, tone) => `${eunNeun(hero)} 오래된 사진첩을 넘기듯 ${tone} 마음으로 ${eulReul(topic)} 하나씩 떠올려 보았어요.`,
+      ],
+    },
+    {
+      label: "2장. 지금의 삶",
+      variants: [
+        (topic, hero) => `${eunNeun(hero)} 오늘의 하루를 가만히 바라보았어요. 젊은 날과는 다르지만, ${eunNeun(topic)} 여전히 마음 한켠에 남아 있었어요.`,
+        (topic, hero) => `이제는 조금 느려진 걸음으로, ${eunNeun(hero)} 지금 이 순간의 ${eulReul(topic)} 가만히 들여다보았어요.`,
+      ],
+    },
+    {
+      label: "3장. 마음의 위로",
+      variants: [
+        (topic, hero) => `${eunNeun(hero)} 스스로에게 조용히 말을 건넸어요. "그동안 참 애썼다. ${eunNeun(topic)} 몰라도 괜찮았어."`,
+        (topic, hero) => `힘들었던 시간들도 있었지만, ${eunNeun(hero)} 그 모든 순간이 ${eulReul(topic)} 향한 여정이었음을 느끼며 마음이 편안해졌어요.`,
+      ],
+    },
+    {
+      label: "4장. 잔잔한 깨달음",
+      variants: [
+        (topic, hero) => `그 순간 ${eunNeun(hero)} 깨달았어요. ${eunNeun(topic)} 화려한 곳에 있는 게 아니라, 지나온 삶 하나하나에 스며 있었다는 것을요.`,
+        (topic, hero) => `${eunNeun(hero)} 나지막이 되뇌었어요. "${eunNeun(topic)} 늦지 않았구나. 지금부터도 충분하구나."`,
+      ],
+    },
+    {
+      label: "5장. 앞으로의 바람 (희망)",
+      variants: [
+        (topic, hero) => `${eunNeun(hero)} 남은 날들도 ${eulReul(topic)} 마음에 품고, 소중한 사람들과 더 따뜻하게 걸어가고 싶어졌어요.`,
+        (topic, hero) => `그날 이후 ${eunNeun(hero)} 하루하루를 ${eulReul(topic)} 품은 채, 감사한 마음으로 채워가기로 했답니다.`,
+      ],
+    },
+  ];
+
   const EXAMPLE_STORY = {
     title: "토끼와 함께하는 용기 이야기",
     scenes: [
@@ -146,6 +191,15 @@ if (generateBtn) {
     const style = AGE_STYLE[ageGroup] || "young";
     const hero = pick(heroes);
     const tone = pick(tones);
+
+    if (style === "senior") {
+      const title = pick(SENIOR_TITLE_TEMPLATES)(topic, hero);
+      const scenes = SENIOR_SCENE_TEMPLATES.map((scene) => ({
+        label: scene.label,
+        text: pick(scene.variants)(topic, hero, tone),
+      }));
+      return { title, scenes };
+    }
 
     const title = pick(TITLE_TEMPLATES)(topic, hero);
     const scenes = SCENE_TEMPLATES.map((scene) => ({

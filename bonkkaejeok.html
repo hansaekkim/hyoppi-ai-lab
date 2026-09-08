@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>본깨적 독서노트 생성기 | 효삐 AI LAB</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="bonkkaejeok.css">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="navbar">
+      <a class="logo" href="index.html">효삐 AI LAB</a>
+
+      <button class="menu-button" type="button" aria-label="메뉴 열기">
+        ☰
+      </button>
+
+      <ul class="menu">
+        <li><a href="index.html#intro">소개</a></li>
+        <li><a href="index.html#picture-book">그림책</a></li>
+        <li><a href="index.html#ai">AI</a></li>
+        <li><a href="index.html#blog">블로그</a></li>
+        <li><a class="active" href="bonkkaejeok.html">독서노트</a></li>
+        <li><a href="index.html#contact">문의하기</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="bkj-main">
+    <section class="bkj-hero">
+      <p class="small-title">Reading Note Generator</p>
+      <h1>본깨적 독서노트 생성기</h1>
+      <p class="bkj-lead">
+        책에서 발췌한 문장이나 핵심 개념을 입력하면
+        <strong>본 것 · 깨달은 것 · 적용할 것</strong> 세 가지로 정리해
+        블로그에 바로 옮길 수 있는 독서노트를 만들어드려요.
+      </p>
+
+      <div class="bkj-legend">
+        <div class="bkj-legend-item bkj-color-bon">
+          <span class="bkj-legend-dot"></span>
+          <div>
+            <strong>본 것</strong>
+            <p>저자의 핵심 내용 요약</p>
+          </div>
+        </div>
+        <div class="bkj-legend-item bkj-color-kkae">
+          <span class="bkj-legend-dot"></span>
+          <div>
+            <strong>깨달은 것</strong>
+            <p>깨달은 점과 통찰</p>
+          </div>
+        </div>
+        <div class="bkj-legend-item bkj-color-jeok">
+          <span class="bkj-legend-dot"></span>
+          <div>
+            <strong>적용할 것</strong>
+            <p>실생활에 적용할 실행 계획</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="bkj-section">
+      <div class="bkj-card bkj-meta-card">
+        <h2>책 정보</h2>
+        <div class="bkj-meta-grid">
+          <label class="bkj-field">
+            <span>책 제목</span>
+            <input type="text" id="book-title" placeholder="예: 아주 작은 습관의 힘">
+          </label>
+          <label class="bkj-field">
+            <span>저자</span>
+            <input type="text" id="book-author" placeholder="예: 제임스 클리어">
+          </label>
+          <label class="bkj-field">
+            <span>읽은 날짜</span>
+            <input type="date" id="read-date">
+          </label>
+        </div>
+      </div>
+
+      <div class="bkj-card bkj-entry-card">
+        <h2>발췌 · 핵심 개념 추가하기</h2>
+        <label class="bkj-field">
+          <span>책 속 문장이나 핵심 개념을 입력하세요</span>
+          <textarea id="entry-text" rows="4" placeholder="예: 습관은 반복을 통해 정체성이 되어간다."></textarea>
+        </label>
+
+        <div class="bkj-category-picker" role="radiogroup" aria-label="분류 선택">
+          <button type="button" class="bkj-category-btn bkj-color-bon" data-category="bon" aria-pressed="true">
+            본 것<span>핵심 내용 요약</span>
+          </button>
+          <button type="button" class="bkj-category-btn bkj-color-kkae" data-category="kkae" aria-pressed="false">
+            깨달은 것<span>깨달음 · 통찰</span>
+          </button>
+          <button type="button" class="bkj-category-btn bkj-color-jeok" data-category="jeok" aria-pressed="false">
+            적용할 것<span>실행 계획</span>
+          </button>
+        </div>
+
+        <button type="button" id="add-entry-btn" class="bkj-add-button">+ 노트에 추가하기</button>
+      </div>
+    </section>
+
+    <section class="bkj-section">
+      <div class="bkj-section-title">
+        <p>Organized Notes</p>
+        <h2>정리된 독서노트</h2>
+      </div>
+
+      <div class="bkj-columns">
+        <div class="bkj-column bkj-color-bon">
+          <h3>1. 본 것<span>저자의 핵심 내용 요약</span></h3>
+          <ul id="list-bon" class="bkj-entry-list"></ul>
+          <p class="bkj-empty" data-empty-for="bon">아직 추가된 내용이 없어요.</p>
+        </div>
+        <div class="bkj-column bkj-color-kkae">
+          <h3>2. 깨달은 것<span>깨달은 점과 통찰</span></h3>
+          <ul id="list-kkae" class="bkj-entry-list"></ul>
+          <p class="bkj-empty" data-empty-for="kkae">아직 추가된 내용이 없어요.</p>
+        </div>
+        <div class="bkj-column bkj-color-jeok">
+          <h3>3. 적용할 것<span>실생활 적용 실행 계획</span></h3>
+          <ul id="list-jeok" class="bkj-entry-list"></ul>
+          <p class="bkj-empty" data-empty-for="jeok">아직 추가된 내용이 없어요.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="bkj-section">
+      <div class="bkj-card bkj-preview-card">
+        <div class="bkj-preview-header">
+          <h2>블로그용 미리보기</h2>
+          <div class="bkj-preview-actions">
+            <button type="button" id="copy-btn" class="bkj-secondary-button">복사하기</button>
+            <button type="button" id="reset-btn" class="bkj-ghost-button">전체 초기화</button>
+          </div>
+        </div>
+        <pre id="preview-text" class="bkj-preview-text"></pre>
+        <p id="copy-feedback" class="bkj-copy-feedback" aria-live="polite"></p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>© 2026 효삐 AI LAB. All rights reserved.</p>
+  </footer>
+
+  <script src="script.js"></script>
+  <script src="bonkkaejeok.js"></script>
+</body>
+</html>

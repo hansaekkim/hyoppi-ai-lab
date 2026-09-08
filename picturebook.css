@@ -240,6 +240,19 @@
   line-height: 1.6;
 }
 
+.pb-result-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.pb-group-heading {
+  margin: 0 0 -6px;
+  color: #3d8eb2;
+  font-size: 15px;
+  font-weight: 800;
+}
+
 .pb-result-books {
   display: flex;
   flex-direction: column;

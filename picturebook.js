@@ -13,17 +13,19 @@ const resultScenes = document.getElementById("pb-result-scenes");
 
 if (generateBtn) {
   const PROTAGONISTS_BY_AGE = {
-    "3-4": ["아기 토끼", "작은 병아리", "몽실이", "아기 곰"],
-    "5-7": ["씩씩한 토끼", "호기심 많은 곰돌이", "다은이", "별이"],
-    "8-9": ["탐험가 준이", "용감한 하늘이", "똑똑한 여우 두리", "다정한 나무"],
-    "10-12": ["모험가 시우", "생각 많은 리아", "씩씩한 로봇 두리", "별빛 마을의 우주"],
+    toddler: ["아기 토끼", "작은 병아리", "몽실이", "아기 곰"],
+    child: ["탐험가 준이", "용감한 하늘이", "똑똑한 여우 두리", "다정한 별이"],
+    teen: ["고민 많은 지우", "꿈 많은 태오", "섬세한 소율", "조용한 은우"],
+    adult: ["바쁜 하루를 보내던 지안", "다시 시작하려는 그 사람", "평범한 회사원 서윤", "마음이 지친 한 사람"],
+    senior: ["정원을 가꾸는 할아버지", "인생을 되돌아보는 할머니", "오랜 친구를 그리워하는 노신사", "평생의 이야기를 모아온 어르신"],
   };
 
   const TONE_ADJECTIVES = {
-    "3-4": ["포근한", "아기자기한", "말랑말랑한"],
-    "5-7": ["다정한", "따뜻한", "포근한"],
-    "8-9": ["씩씩한", "두근두근한", "신나는"],
-    "10-12": ["잔잔한", "묵직한", "성장하는"],
+    toddler: ["포근한", "아기자기한", "말랑말랑한"],
+    child: ["씩씩한", "두근두근한", "신나는"],
+    teen: ["풋풋한", "흔들리는", "성장하는"],
+    adult: ["잔잔한", "담담한", "위로가 되는"],
+    senior: ["따뜻한", "그리운", "잔잔한"],
   };
 
   const TITLE_TEMPLATES = [
@@ -33,40 +35,68 @@ if (generateBtn) {
     (topic, hero) => `오늘, ${eunNeun(topic)} 시작돼요`,
   ];
 
+  const AGE_STYLE = {
+    toddler: "young",
+    child: "young",
+    teen: "grown",
+    adult: "grown",
+    senior: "grown",
+  };
+
   const SCENE_TEMPLATES = [
     {
       label: "1장. 이야기의 시작",
-      variants: [
+      young: [
         (topic, hero, tone) => `${eunNeun(hero)} 여느 때처럼 ${tone} 하루를 보내고 있었어요. 그런데 오늘은 ${iGa(topic)} 유난히 마음에 걸렸어요.`,
         (topic, hero, tone) => `${tone} 마을에 사는 ${eunNeun(hero)} 아직 ${iGa(topic)} 무엇인지 잘 몰랐어요.`,
+      ],
+      grown: [
+        (topic, hero, tone) => `${eunNeun(hero)} 여느 때처럼 ${tone} 하루를 보내고 있었어요. 그런데 요즘 들어 ${iGa(topic)} 자꾸만 마음에 걸렸어요.`,
+        (topic, hero, tone) => `${tone} 시간을 보내던 ${eunNeun(hero)} 문득 ${iGa(topic)} 무엇인지 다시 생각하게 되었어요.`,
       ],
     },
     {
       label: "2장. 두근두근 사건",
-      variants: [
+      young: [
         (topic, hero) => `어느 날, ${eunNeun(hero)} ${gwaWa(topic)} 관련된 작은 문제를 마주하게 되었어요.`,
         (topic, hero) => `친구들과 놀던 중, ${iGa(topic)} 없이는 해결할 수 없는 일이 생기고 말았어요.`,
+      ],
+      grown: [
+        (topic, hero) => `어느 날, ${eunNeun(hero)} ${gwaWa(topic)} 관련된 뜻밖의 고민과 마주하게 되었어요.`,
+        (topic, hero) => `바쁜 일상 속에서, ${iGa(topic)} 없이는 답을 찾기 어려운 순간이 찾아왔어요.`,
       ],
     },
     {
       label: "3장. 좌충우돌 도전",
-      variants: [
+      young: [
         (topic, hero) => `${eunNeun(hero)} 여러 번 실패했지만, 포기하지 않고 ${eulReul(topic)} 향해 한 걸음씩 나아갔어요.`,
         (topic, hero) => `쉽지 않았지만 ${eunNeun(hero)} 친구들과 힘을 모아 ${eulReul(topic)} 배워가기 시작했어요.`,
+      ],
+      grown: [
+        (topic, hero) => `${eunNeun(hero)} 여러 번 흔들렸지만, 포기하지 않고 ${eulReul(topic)} 향해 한 걸음씩 나아갔어요.`,
+        (topic, hero) => `쉽지 않았지만 ${eunNeun(hero)} 주변 사람들과 마음을 나누며 ${eulReul(topic)} 다시 배워가기 시작했어요.`,
       ],
     },
     {
       label: "4장. 반짝이는 깨달음",
-      variants: [
+      young: [
         (topic, hero) => `그 순간 ${eunNeun(hero)} 깨달았어요. ${eunNeun(topic)} 멀리 있는 게 아니라, 바로 마음속에 있었다는 것을요.`,
         (topic, hero) => `${eunNeun(hero)} 웃으며 말했어요. "${eunNeun(topic)} 혼자가 아니라 함께할 때 더 빛나는구나!"`,
+      ],
+      grown: [
+        (topic, hero) => `그 순간 ${eunNeun(hero)} 조용히 깨달았어요. ${eunNeun(topic)} 멀리 있는 게 아니라, 이미 자신의 삶 속에 있었다는 것을요.`,
+        (topic, hero) => `${eunNeun(hero)} 나지막이 되뇌었어요. "${eunNeun(topic)} 혼자가 아니라 함께할 때 더 빛나는구나."`,
       ],
     },
     {
       label: "5장. 행복한 마무리",
-      variants: [
+      young: [
         (topic, hero) => `${eunNeun(hero)} 이제 ${eulReul(topic)} 마음에 품고, 내일도 씩씩하게 하루를 시작하기로 했어요.`,
         (topic, hero) => `그날 이후 ${eunNeun(hero)} 친구들에게 ${eulReul(topic)} 나누는 다정한 이웃이 되었답니다.`,
+      ],
+      grown: [
+        (topic, hero) => `${eunNeun(hero)} 이제 ${eulReul(topic)} 마음에 품고, 내일을 조금 더 다정하게 맞이하기로 했어요.`,
+        (topic, hero) => `그날 이후 ${eunNeun(hero)} 주변 사람들과 ${eulReul(topic)} 나누는, 조금 더 다정한 사람이 되었답니다.`,
       ],
     },
   ];
@@ -111,15 +141,16 @@ if (generateBtn) {
   }
 
   function buildStory(topic, ageGroup) {
-    const heroes = PROTAGONISTS_BY_AGE[ageGroup] || PROTAGONISTS_BY_AGE["5-7"];
-    const tones = TONE_ADJECTIVES[ageGroup] || TONE_ADJECTIVES["5-7"];
+    const heroes = PROTAGONISTS_BY_AGE[ageGroup] || PROTAGONISTS_BY_AGE.toddler;
+    const tones = TONE_ADJECTIVES[ageGroup] || TONE_ADJECTIVES.toddler;
+    const style = AGE_STYLE[ageGroup] || "young";
     const hero = pick(heroes);
     const tone = pick(tones);
 
     const title = pick(TITLE_TEMPLATES)(topic, hero);
     const scenes = SCENE_TEMPLATES.map((scene) => ({
       label: scene.label,
-      text: pick(scene.variants)(topic, hero, tone),
+      text: pick(scene[style])(topic, hero, tone),
     }));
 
     return { title, scenes };

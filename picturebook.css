@@ -229,51 +229,104 @@
   gap: 10px;
 }
 
-.pb-result-scenes {
+.pb-result-notice {
+  margin: 0 0 20px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  background-color: #fff3dc;
+  color: #7a5a1f;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.pb-result-books {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 22px;
   margin: 0;
   padding: 0;
   list-style: none;
-  counter-reset: pb-scene;
 }
 
-.pb-result-scenes li {
-  position: relative;
-  padding: 16px 18px 16px 52px;
+.pb-book-card {
+  padding: 24px;
   border: 1px solid #efe2cf;
-  border-radius: 16px;
+  border-radius: 18px;
   background-color: #fffaf2;
+}
+
+.pb-book-index {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background-color: #aee5ff;
+  color: #204f65;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.pb-book-title {
+  margin-bottom: 4px;
+  color: #2d4050;
+  font-size: 21px;
+}
+
+.pb-book-meta {
+  margin-bottom: 16px;
+  color: #7a7166;
+  font-size: 14px;
+}
+
+.pb-book-section {
+  margin-bottom: 14px;
+}
+
+.pb-book-section:last-child {
+  margin-bottom: 0;
+}
+
+.pb-book-section-label {
+  display: block;
+  margin-bottom: 6px;
+  color: #3d8eb2;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.pb-book-section p {
+  margin: 0;
   color: #4a4238;
   font-size: 15px;
   line-height: 1.7;
 }
 
-.pb-result-scenes li::before {
-  counter-increment: pb-scene;
-  content: counter(pb-scene);
-  position: absolute;
-  top: 14px;
-  left: 14px;
+.pb-book-tags {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background-color: #aee5ff;
-  color: #204f65;
-  font-size: 13px;
-  font-weight: 800;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.pb-result-scenes .pb-scene-label {
-  display: block;
-  margin-bottom: 4px;
-  color: #3d8eb2;
+.pb-book-tag {
+  padding: 5px 13px;
+  border-radius: 999px;
+  background-color: #e4f6ff;
+  color: #2a6680;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 700;
+}
+
+.pb-book-questions {
+  margin: 0;
+  padding-left: 20px;
+  color: #4a4238;
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+.pb-book-questions li {
+  margin-bottom: 4px;
 }
 
 .pb-copy-feedback {
@@ -304,5 +357,13 @@
   .pb-result-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .pb-book-card {
+    padding: 18px;
+  }
+
+  .pb-book-title {
+    font-size: 19px;
   }
 }

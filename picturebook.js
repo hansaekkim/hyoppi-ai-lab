@@ -12,9 +12,6 @@ const resultNotice = document.getElementById("pb-result-notice");
 const resultBooks = document.getElementById("pb-result-books");
 
 if (generateBtn) {
-  // Curated list of real, published picture books only. Every title/author/
-  // publisher below was cross-checked against publisher and bookstore listings
-  // before being added — never invent a book, author, or publisher here.
   const AGE_LABELS = {
     toddler: "유아(3-7세)",
     child: "어린이(8-12세)",
@@ -23,12 +20,13 @@ if (generateBtn) {
     senior: "시니어(65세 이상)",
   };
 
-  // Every book carries coreThemes (what the book is actually, centrally
-  // about) separately from relatedThemes (secondary aspects it touches on).
-  // A keyword must match coreThemes to count as a "direct" recommendation —
-  // matching only relatedThemes places a book in the broadened bucket, never
-  // the primary one. This split is what keeps age-appropriate-but-unrelated
-  // books (e.g. an adventure story for a "습관" search) out of the main list.
+  // Recommendations now come from a live Google Books API search (see
+  // searchGoogleBooks / generate below) — real title/author/publisher/
+  // description come straight from the API response and are never rewritten
+  // or invented. This BOOKS list is kept ONLY as an offline fallback for when
+  // the live search request itself fails (network error, CORS, rate limit),
+  // never blended into a live result set. Every title/author/publisher below
+  // was cross-checked against publisher and bookstore listings.
   const BOOKS = [
     {
       title: "곰 사냥을 떠나자",
@@ -340,16 +338,10 @@ if (generateBtn) {
     return hasBatchim(word) ? `${word}이라는` : `${word}라는`;
   }
 
-  // Priority order enforced here, exactly as requested:
-  // 1순위 — the keyword must match a book's CORE theme for it to count as a
-  //         direct recommendation. Age alone never qualifies a book, and a
-  //         keyword match against a merely-related theme does not count as
-  //         direct either.
-  // 2순위 — 추가 요청 text (and a keyword hitting only a related theme) can
-  //         only ever place a book in the broadened/related bucket, and only
-  //         when there aren't already 5 direct matches.
-  // 3순위 — age is applied first as a hard filter, never as a reason to include.
-  function selectBooks(ageGroup, topicText, extraText) {
+  // --- Offline fallback engine (only used if the live Google Books request
+  // fails). Same priority rules as before: keyword must hit a book's CORE
+  // theme to be "direct"; age is a filter only, never a reason to include.
+  function selectFallbackBooks(ageGroup, topicText, extraText) {
     const keywords = parseKeywords(topicText);
     const ageMatched = BOOKS.filter((book) => book.ages.includes(ageGroup));
 
@@ -370,20 +362,19 @@ if (generateBtn) {
       .filter((entry) => entry.coreByKeyword.size === 0 && entry.relatedMatched.size > 0)
       .sort((a, b) => b.relatedMatched.size - a.relatedMatched.size || b.jitter - a.jitter);
 
-    const coreChosen = coreBucket.slice(0, 5);
-    const relatedChosen = relatedBucket.slice(0, Math.max(0, 5 - coreChosen.length));
+    const directChosen = coreBucket.slice(0, 5);
+    const relatedChosen = relatedBucket.slice(0, Math.max(0, 5 - directChosen.length));
 
-    return { coreChosen, relatedChosen };
-  }
+    const directItems = directChosen.map((entry) => ({
+      book: entry.book,
+      reason: `이 책은 ${eulReul(Array.from(entry.coreByKeyword)[0])} 중심으로 다루기 때문에 입력하신 '${topicText}' 주제와 직접적으로 연결됩니다.`,
+    }));
+    const relatedItems = relatedChosen.map((entry) => ({
+      book: entry.book,
+      reason: `이 책은 ${eulReul(topicText)} 직접 다루는 책은 아니지만, ${iRaneun(entry.book.coreThemes[0])} 측면에서 함께 활용할 수 있습니다.`,
+    }));
 
-  function buildDirectReason(entry, topicText) {
-    const matchedTheme = Array.from(entry.coreByKeyword)[0];
-    return `이 책은 ${eulReul(matchedTheme)} 중심으로 다루기 때문에 입력하신 '${topicText}' 주제와 직접적으로 연결됩니다.`;
-  }
-
-  function buildRelatedReason(entry, topicText) {
-    const bridgeTheme = entry.book.coreThemes[0];
-    return `이 책은 ${eulReul(topicText)} 직접 다루는 책은 아니지만, ${iRaneun(bridgeTheme)} 측면에서 함께 활용할 수 있습니다.`;
+    return { directItems, relatedItems };
   }
 
   function buildQuestions(ageGroup, topicText, title) {
@@ -393,25 +384,43 @@ if (generateBtn) {
     return picks.map((fn) => fn(primaryKeyword, title));
   }
 
-  function buildBookCard(entry, reason, questions, index) {
-    const { book } = entry;
+  function buildBookCard(book, reason, questions, index) {
     const li = document.createElement("li");
     li.className = "pb-book-card";
 
     const indexBadge = document.createElement("span");
     indexBadge.className = "pb-book-index";
     indexBadge.textContent = `추천 그림책 ${String(index).padStart(2, "0")}`;
-    li.appendChild(indexBadge);
+
+    const topRow = document.createElement("div");
+    topRow.className = "pb-book-top";
+
+    const textCol = document.createElement("div");
+    textCol.className = "pb-book-top-text";
+    textCol.appendChild(indexBadge);
 
     const titleEl = document.createElement("h5");
     titleEl.className = "pb-book-title";
     titleEl.textContent = book.title;
-    li.appendChild(titleEl);
+    textCol.appendChild(titleEl);
 
     const metaEl = document.createElement("p");
     metaEl.className = "pb-book-meta";
     metaEl.textContent = book.publisher ? `${book.author} | ${book.publisher}` : book.author;
-    li.appendChild(metaEl);
+    textCol.appendChild(metaEl);
+
+    topRow.appendChild(textCol);
+
+    if (book.thumbnail) {
+      const cover = document.createElement("img");
+      cover.className = "pb-book-cover";
+      cover.src = book.thumbnail;
+      cover.alt = `${book.title} 표지`;
+      cover.loading = "lazy";
+      topRow.appendChild(cover);
+    }
+
+    li.appendChild(topRow);
 
     const sections = [
       { label: "책 소개", content: book.description },
@@ -467,34 +476,182 @@ if (generateBtn) {
     return li;
   }
 
-  let lastRender = null;
+  // --- Live Google Books search (no API key — see the keyless quota caveat
+  // called out to the user; this endpoint supports CORS so it can be called
+  // directly from the browser with no backend). Query construction and
+  // scoring happen client-side; the API is the sole source of book facts.
+  const GOOGLE_BOOKS_ENDPOINT = "https://www.googleapis.com/books/v1/volumes";
 
-  function render(ageGroup, topicText, extraText) {
-    const { coreChosen, relatedChosen } = selectBooks(ageGroup, topicText, extraText);
-    const total = coreChosen.length + relatedChosen.length;
-    const showBothGroups = coreChosen.length > 0 && relatedChosen.length > 0;
+  const KEYWORD_EXPANSIONS = {
+    습관: ["습관", "생활습관", "바른생활", "양치", "정리", "식습관"],
+    감사: ["감사", "고마움"],
+    용기: ["용기", "도전"],
+    죽음: ["죽음", "이별", "임종"],
+    상실: ["상실", "이별", "그리움"],
+    가족: ["가족", "엄마", "아빠"],
+    우정: ["우정", "친구"],
+    자존감: ["자존감", "자신감", "자기존중"],
+    환경: ["환경", "자연", "지구"],
+    삶: ["삶", "인생"],
+    선택: ["선택", "결정"],
+    추억: ["추억", "회상", "그리움"],
+    노년: ["노년", "황혼", "노후", "어르신"],
+    "새로운 시작": ["새로운 시작", "새출발", "도전", "변화"],
+  };
 
-    let noticeText = "";
+  const AGE_ACTIVITY_DEFAULTS = {
+    toddler: ["부모·아이 함께 읽기", "그림책 수업"],
+    child: ["그림책 수업", "독서토론"],
+    teen: ["독서토론", "자기성찰"],
+    adult: ["독서모임", "자기성찰"],
+    senior: ["시니어 회상 활동", "세대 간 대화"],
+  };
+
+  function expandKeyword(keyword) {
+    return KEYWORD_EXPANSIONS[keyword] || [keyword];
+  }
+
+  function truncateText(text, max) {
+    if (text.length <= max) return text;
+    return `${text.slice(0, max).trim()}…`;
+  }
+
+  function buildSearchQuery(searchTerms) {
+    const orClause = searchTerms.length > 1 ? `(${searchTerms.join(" OR ")})` : searchTerms[0];
+    return `${orClause} 그림책`;
+  }
+
+  const SEARCH_TIMEOUT_MS = 8000;
+
+  async function searchGoogleBooks(searchTerms) {
+    const query = buildSearchQuery(searchTerms);
+    const url = `${GOOGLE_BOOKS_ENDPOINT}?q=${encodeURIComponent(query)}&langRestrict=ko&printType=books&maxResults=20`;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), SEARCH_TIMEOUT_MS);
+    try {
+      const response = await fetch(url, { signal: controller.signal });
+      if (!response.ok) {
+        throw new Error(`Google Books API error ${response.status}`);
+      }
+      const data = await response.json();
+      return data.items || [];
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  function dedupeVolumes(items) {
+    const seen = new Set();
+    const result = [];
+    items.forEach((volume) => {
+      const info = volume.volumeInfo || {};
+      const key = `${(info.title || "").trim()}|${(info.authors || []).join(",")}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        result.push(volume);
+      }
+    });
+    return result;
+  }
+
+  // extraBoost checks whether the BOOK's own text relates to the user's
+  // stated purpose (추가 요청) — never whether the user's own input text
+  // happens to contain the keyword synonyms, which would be tautological
+  // (the user's extra request text almost always echoes their own keyword)
+  // and would let any book sneak into the related bucket with zero real
+  // connection to it, which is exactly the "곰 사냥을 떠나자" failure mode.
+  // So extraBoost only ever affects ranking among books that already passed
+  // the title/body keyword gate — it can never qualify a book on its own.
+  function scoreVolume(volume, searchTerms, extraText) {
+    const info = volume.volumeInfo || {};
+    const titleText = `${info.title || ""} ${info.subtitle || ""}`;
+    const bodyText = `${info.description || ""} ${(info.categories || []).join(" ")}`;
+    const titleMatches = searchTerms.filter((term) => titleText.includes(term));
+    const bodyMatches = searchTerms.filter((term) => bodyText.includes(term));
+    const extraTerms = extraText ? parseKeywords(extraText).filter((word) => word.length >= 2) : [];
+    const extraBoost = extraTerms.filter((term) => titleText.includes(term) || bodyText.includes(term)).length;
+    return { info, titleMatches, bodyMatches, extraBoost };
+  }
+
+  function mapVolumeToBook(info, ageGroup) {
+    return {
+      title: info.title || "제목 정보 없음",
+      author: info.authors && info.authors.length ? info.authors.join(", ") : "저자 정보 없음",
+      publisher: info.publisher || null,
+      description: info.description ? truncateText(info.description, 220) : "책 소개 정보가 제공되지 않았어요.",
+      activities: AGE_ACTIVITY_DEFAULTS[ageGroup] || AGE_ACTIVITY_DEFAULTS.toddler,
+      thumbnail: info.imageLinks ? info.imageLinks.thumbnail || info.imageLinks.smallThumbnail || null : null,
+    };
+  }
+
+  async function fetchLiveRecommendations(ageGroup, topicText, extraText) {
+    const keywords = parseKeywords(topicText);
+    const searchTerms = Array.from(new Set([...expandKeyword(keywords[0] || topicText), ...keywords.slice(1)]));
+
+    const rawItems = await searchGoogleBooks(searchTerms);
+    const scored = dedupeVolumes(rawItems).map((volume) => scoreVolume(volume, searchTerms, extraText));
+
+    const direct = scored
+      .filter((entry) => entry.titleMatches.length > 0)
+      .sort((a, b) => b.titleMatches.length - a.titleMatches.length || b.extraBoost - a.extraBoost);
+
+    const related = scored
+      .filter((entry) => entry.titleMatches.length === 0 && entry.bodyMatches.length > 0)
+      .sort((a, b) => b.bodyMatches.length - a.bodyMatches.length || b.extraBoost - a.extraBoost);
+
+    const directChosen = direct.slice(0, 5);
+    const relatedChosen = related.slice(0, Math.max(0, 5 - directChosen.length));
+
+    const directItems = directChosen.map((entry) => ({
+      book: mapVolumeToBook(entry.info, ageGroup),
+      reason: `이 책은 제목에 ${iGa(entry.titleMatches[0])} 포함되어 있어, 입력하신 '${topicText}' 주제와 직접적으로 연결됩니다.`,
+    }));
+    const relatedItems = relatedChosen.map((entry) => {
+      const matchedTerm = entry.bodyMatches[0];
+      return {
+        book: mapVolumeToBook(entry.info, ageGroup),
+        reason: `이 책은 ${eulReul(topicText)} 직접 다루는 책은 아니지만, 책 소개에 ${iGa(matchedTerm)} 포함되어 있어 관련 주제로 함께 살펴볼 수 있습니다.`,
+      };
+    });
+
+    return { directItems, relatedItems };
+  }
+
+  function buildNoticeText(directCount, relatedCount, topicText, isFallback) {
+    const total = directCount + relatedCount;
+    let text = isFallback
+      ? "실시간 도서 검색에 연결할 수 없어, 준비된 오프라인 추천 도서로 안내합니다. "
+      : "";
+
     if (total === 0) {
-      noticeText = `입력하신 '${topicText}' 키워드와 직접 또는 관련하여 확인할 수 있는 그림책을 찾지 못했어요. 다른 키워드로 다시 시도해보세요.`;
-    } else if (coreChosen.length === 0) {
-      noticeText = `입력하신 주제와 직접적으로 일치하는 그림책을 찾지 못해, 관련 주제로 범위를 넓혀 ${relatedChosen.length}권을 추천합니다.`;
-    } else if (coreChosen.length < 5) {
-      noticeText = `입력하신 주제와 직접적으로 관련된 그림책을 확실하게 확인할 수 있는 범위에서 ${coreChosen.length}권 추천합니다.`;
-      if (relatedChosen.length > 0) {
-        noticeText += ` 함께 살펴볼 수 있는 관련 그림책 ${relatedChosen.length}권도 아래에 구분해 추천합니다.`;
+      text += `입력하신 '${topicText}' 키워드와 직접 또는 관련하여 확인할 수 있는 그림책을 찾지 못했어요. 다른 키워드로 다시 시도해보세요.`;
+    } else if (directCount === 0) {
+      text += `입력하신 주제와 직접적으로 일치하는 그림책을 찾지 못해, 관련 주제로 범위를 넓혀 ${relatedCount}권을 추천합니다.`;
+    } else if (directCount < 5) {
+      text += `입력하신 주제와 직접적으로 관련된 그림책을 확실하게 확인할 수 있는 범위에서 ${directCount}권 추천합니다.`;
+      if (relatedCount > 0) {
+        text += ` 함께 살펴볼 수 있는 관련 그림책 ${relatedCount}권도 아래에 구분해 추천합니다.`;
       }
     }
+    return text;
+  }
 
-    resultNotice.hidden = !noticeText;
-    resultNotice.textContent = noticeText;
+  let lastRender = null;
+
+  function renderResults({ directItems, relatedItems, ageGroup, topicText, extraText, isFallback }) {
+    const total = directItems.length + relatedItems.length;
+    const showBothGroups = directItems.length > 0 && relatedItems.length > 0;
+
+    resultNotice.textContent = buildNoticeText(directItems.length, relatedItems.length, topicText, isFallback);
+    resultNotice.hidden = !resultNotice.textContent;
     resultBooks.innerHTML = "";
 
     const renderedBooks = [];
     let cardNumber = 0;
 
-    function appendGroup(entries, heading, buildReasonFn) {
-      if (entries.length === 0) return;
+    function appendGroup(items, heading) {
+      if (items.length === 0) return;
       if (heading) {
         const headingEl = document.createElement("h5");
         headingEl.className = "pb-group-heading";
@@ -503,18 +660,17 @@ if (generateBtn) {
       }
       const list = document.createElement("ol");
       list.className = "pb-result-books";
-      entries.forEach((entry) => {
+      items.forEach((item) => {
         cardNumber += 1;
-        const reason = buildReasonFn(entry, topicText);
-        const questions = buildQuestions(ageGroup, topicText, entry.book.title);
-        renderedBooks.push({ book: entry.book, reason, questions });
-        list.appendChild(buildBookCard(entry, reason, questions, cardNumber));
+        const questions = buildQuestions(ageGroup, topicText, item.book.title);
+        renderedBooks.push({ book: item.book, reason: item.reason, questions });
+        list.appendChild(buildBookCard(item.book, item.reason, questions, cardNumber));
       });
       resultBooks.appendChild(list);
     }
 
-    appendGroup(coreChosen, showBothGroups ? "주제와 직접 관련된 그림책" : "", buildDirectReason);
-    appendGroup(relatedChosen, showBothGroups ? "함께 살펴볼 수 있는 관련 그림책" : "", buildRelatedReason);
+    appendGroup(directItems, showBothGroups ? "주제와 직접 관련된 그림책" : "");
+    appendGroup(relatedItems, showBothGroups ? "함께 살펴볼 수 있는 관련 그림책" : "");
 
     resultTitle.textContent = total > 0 ? `당신을 위한 그림책 ${total}권` : "조건에 맞는 그림책을 찾지 못했어요";
 
@@ -524,7 +680,15 @@ if (generateBtn) {
     resultBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
-  function generate() {
+  function setSearching(isSearching) {
+    generateBtn.disabled = isSearching;
+    regenerateBtn.disabled = isSearching;
+    generateBtn.innerHTML = isSearching
+      ? '<span aria-hidden="true">🔍</span> 검색 중...'
+      : '<span aria-hidden="true">✨</span> 그림책 추천받기';
+  }
+
+  async function generate() {
     const topicText = topicInput.value.trim();
     if (!topicText) {
       topicInput.focus();
@@ -532,7 +696,17 @@ if (generateBtn) {
     }
     const ageGroup = ageSelect.value;
     const extraText = extraInput.value.trim();
-    render(ageGroup, topicText, extraText);
+
+    setSearching(true);
+    try {
+      const { directItems, relatedItems } = await fetchLiveRecommendations(ageGroup, topicText, extraText);
+      renderResults({ directItems, relatedItems, ageGroup, topicText, extraText, isFallback: false });
+    } catch (error) {
+      const { directItems, relatedItems } = selectFallbackBooks(ageGroup, topicText, extraText);
+      renderResults({ directItems, relatedItems, ageGroup, topicText, extraText, isFallback: true });
+    } finally {
+      setSearching(false);
+    }
   }
 
   function buildCopyText() {

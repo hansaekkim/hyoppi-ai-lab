@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>효삐 AI LAB</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="picturebook.css">
 </head>
 <body>
   <header class="site-header">
@@ -59,23 +60,81 @@
       <div class="section-title">
         <p>Picture Book</p>
         <h2>그림책</h2>
+        <p class="pb-subtitle">아이와 어른이 함께 읽을 수 있는, 따뜻한 이야기를 AI와 함께 만들어보세요.</p>
       </div>
 
-      <div class="card-grid">
-        <article class="content-card">
+      <div class="pb-feature-grid">
+        <article class="pb-feature-card pb-feature-warm">
+          <span class="pb-feature-icon" aria-hidden="true">📖</span>
           <h3>따뜻한 이야기</h3>
-          <p>아이와 어른이 함께 읽을 수 있는 다정한 이야기를 만듭니다.</p>
+          <p>아이와 어른이 함께 읽을 수 있는 다정한 이야기를 만들어보세요.</p>
+          <a class="pb-feature-button" href="#pb-generator">시작하기 <span aria-hidden="true">→</span></a>
         </article>
 
-        <article class="content-card">
+        <article class="pb-feature-card pb-feature-mint">
+          <span class="pb-feature-icon" aria-hidden="true">✏️</span>
           <h3>쉬운 표현</h3>
-          <p>어려운 내용을 그림과 짧은 문장으로 쉽게 풀어냅니다.</p>
+          <p>어려운 내용을 그림과 짧은 문장으로 쉽고 재미있게 풀어드립니다.</p>
+          <a class="pb-feature-button" href="#pb-generator">표현 도와주기 <span aria-hidden="true">→</span></a>
         </article>
 
-        <article class="content-card">
+        <article class="pb-feature-card pb-feature-purple">
+          <span class="pb-feature-icon" aria-hidden="true">🤖</span>
           <h3>AI 활용</h3>
-          <p>AI를 도구로 사용해 상상력을 넓히고 작업 과정을 배웁니다.</p>
+          <p>AI를 도구로 사용해 상상력을 넓히고 작업 과정을 함께 배워보세요.</p>
+          <a class="pb-feature-button" href="#pb-generator">AI와 함께하기 <span aria-hidden="true">→</span></a>
         </article>
+      </div>
+
+      <div id="pb-generator" class="pb-card pb-generator-card">
+        <div class="pb-generator-header">
+          <div>
+            <h3><span aria-hidden="true">✨</span> 그림책 이야기 생성하기</h3>
+            <p>원하는 주제나 키워드를 입력하면 AI가 그림책 스토리를 제안해요.</p>
+          </div>
+          <button type="button" id="pb-example-btn" class="pb-secondary-button">
+            <span aria-hidden="true">📖</span> 예시 보기
+          </button>
+        </div>
+
+        <div class="pb-form-grid">
+          <label class="pb-field">
+            <span>주제 또는 키워드</span>
+            <input type="text" id="pb-topic" placeholder="예) 용기, 친절, 환경, 반려동물, 우주, 친구 ...">
+          </label>
+
+          <label class="pb-field">
+            <span>대상 연령</span>
+            <select id="pb-age">
+              <option value="3-4">3-4세 (유아)</option>
+              <option value="5-7" selected>5-7세 (유아)</option>
+              <option value="8-9">8-9세 (저학년)</option>
+              <option value="10-12">10-12세 (고학년)</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="pb-field pb-textarea-field">
+          <span>추가 요청 (선택)</span>
+          <textarea id="pb-extra" rows="3" maxlength="500" placeholder="원하는 분위기, 등장인물, 배경, 메시지 등을 자유롭게 입력해 주세요."></textarea>
+          <span class="pb-char-count"><span id="pb-extra-count">0</span>/500</span>
+        </label>
+
+        <button type="button" id="pb-generate-btn" class="pb-generate-button">
+          <span aria-hidden="true">✨</span> 그림책 이야기 생성하기
+        </button>
+
+        <div id="pb-result" class="pb-result" hidden>
+          <div class="pb-result-header">
+            <h4 id="pb-result-title"></h4>
+            <div class="pb-result-actions">
+              <button type="button" id="pb-regenerate-btn" class="pb-secondary-button">다시 만들기</button>
+              <button type="button" id="pb-copy-btn" class="pb-secondary-button">복사하기</button>
+            </div>
+          </div>
+          <ol id="pb-result-scenes" class="pb-result-scenes"></ol>
+          <p id="pb-copy-feedback" class="pb-copy-feedback" aria-live="polite"></p>
+        </div>
       </div>
     </section>
 
@@ -136,5 +195,6 @@
   </footer>
 
   <script src="script.js"></script>
+  <script src="picturebook.js"></script>
 </body>
 </html>

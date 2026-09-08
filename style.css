@@ -269,6 +269,112 @@ h1 {
   margin-bottom: 22px;
 }
 
+.rn-card {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 40px;
+  border: 1px solid #efe2cf;
+  border-radius: 24px;
+  background-color: #ffffff;
+  box-shadow: 0 14px 34px rgba(101, 82, 60, 0.1);
+  text-align: center;
+}
+
+.rn-eyebrow {
+  display: inline-block;
+  margin: 0 0 10px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background-color: #e4f6ff;
+  color: #2a6680;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.rn-tagline {
+  margin-bottom: 16px;
+  color: #2d2620;
+  font-size: 26px;
+}
+
+.rn-description {
+  max-width: 480px;
+  margin: 0 auto 28px;
+  color: #5f554c;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.rn-legend {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 30px;
+  text-align: left;
+}
+
+.rn-legend-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  border: 1px solid #efe2cf;
+  border-radius: 16px;
+  background-color: #fffaf2;
+}
+
+.rn-legend-item p {
+  margin: 2px 0 0;
+  color: #62584f;
+  font-size: 13px;
+}
+
+.rn-legend-dot {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  margin-top: 4px;
+  border-radius: 50%;
+}
+
+.rn-color-bon .rn-legend-dot {
+  background-color: #6cc2f2;
+}
+
+.rn-color-kkae .rn-legend-dot {
+  background-color: #f2c569;
+}
+
+.rn-color-jeok .rn-legend-dot {
+  background-color: #7fd19a;
+}
+
+.rn-cta-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 0 30px;
+  border-radius: 999px;
+  background-color: #aee5ff;
+  color: #204f65;
+  font-size: 16px;
+  font-weight: 800;
+  box-shadow: 0 10px 22px rgba(79, 155, 190, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.rn-cta-button:hover {
+  transform: scale(1.03);
+  box-shadow: 0 14px 30px rgba(79, 155, 190, 0.26);
+}
+
+.rn-external-note {
+  margin: 14px 0 0;
+  color: #a49a8d;
+  font-size: 13px;
+}
+
 .footer {
   padding: 30px 20px;
   background-color: #3a3028;
@@ -296,6 +402,10 @@ h1 {
 
   .card-grid {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .rn-legend {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -359,17 +469,23 @@ h1 {
   .intro-card,
   .wide-card,
   .contact-card,
-  .content-card {
+  .content-card,
+  .rn-card {
     border-radius: 18px;
   }
 
   .intro-card,
   .wide-card,
-  .contact-card {
+  .contact-card,
+  .rn-card {
     padding: 26px;
   }
 
   .intro-card p {
     font-size: 19px;
+  }
+
+  .rn-tagline {
+    font-size: 22px;
   }
 }
